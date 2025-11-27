@@ -1,0 +1,24 @@
+{
+  "watch": ["src", "server.js", "app.js"],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules",
+    "*.test.js",
+    "*.spec.js",
+    "coverage",
+    "dist",
+    "build",
+    "logs"
+  ],
+  "exec": "node server.js",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": "1000",
+  "colours": true,
+  "verbose": false,
+  "restartable": "rs",
+  "events": {
+    "restart": "echo 'Server restarted due to file changes...'"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+coverage/
+*.config.js
+.env
+.env.*
+*.log
+*.min.js
+public/
+uploads/
+temp/
+tmp/

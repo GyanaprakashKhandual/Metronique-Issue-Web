@@ -2,12 +2,58 @@
   "name": "web",
   "version": "1.0.0",
   "description": "Issue tracking application backend",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\"",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {}\""
   },
-  "keywords": [],
+  "keywords": [
+    "issue-tracker",
+    "backend",
+    "express",
+    "mongodb",
+    "oauth"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GyanaprakashKhandual/Metronique-Issue-Web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GyanaprakashKhandual/Metronique-Issue-Web/issues"
+  },
+  "homepage": "https://github.com/GyanaprakashKhandual/Metronique-Issue-Web#readme",
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@scalar/express-api-reference": "^0.8.25",
+    "bcryptjs": "^3.0.3",
+    "mongoose": "^9.0.0",
+    "swagger-jsdoc": "^6.2.8"
+  }
 }
