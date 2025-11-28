@@ -5,7 +5,6 @@ const mailLogSchema = new mongoose.Schema(
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         userId: {
@@ -21,19 +20,14 @@ const mailLogSchema = new mongoose.Schema(
         },
         messageId: {
             type: String,
-
             unique: true,
             index: true
         },
         subject: {
-            type: String,
-
-            maxlength: 255
+            type: String
         },
         recipientEmail: {
             type: String,
-
-            lowercase: true,
             index: true
         },
         recipientName: {
@@ -42,13 +36,11 @@ const mailLogSchema = new mongoose.Schema(
         },
         senderEmail: {
             type: String,
-
-            lowercase: true,
-            default: 'noreply@projectmanagement.com'
+            default: 'noreply@metronique.com'
         },
         senderName: {
             type: String,
-            default: 'Project Management System'
+            default: 'Metronique'
         },
         ccEmails: [
             {

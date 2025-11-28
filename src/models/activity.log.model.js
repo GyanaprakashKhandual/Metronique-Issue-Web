@@ -299,7 +299,23 @@ const activityLogSchema = new mongoose.Schema(
         isArchived: {
             type: Boolean,
             default: false,
-            index: true
+            index: true,
+            mfaVerified: {
+                type: Boolean,
+                default: false,
+                index: true
+            },
+            mfaMethod: {
+                type: String,
+                enum: ['totp', 'email', 'sms', 'backup', 'trusted_device', null],
+                default: null,
+                index: true
+            },
+            sessionId: {
+                type: String,
+                default: null,
+                index: true
+            },
         }
     },
     {

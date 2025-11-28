@@ -2,12 +2,7 @@ import mongoose from 'mongoose';
 
 const requirementSchema = new mongoose.Schema(
     {
-        serialNumber: {
-            type: String,
-            unique: true,
-            index: true
-        },
-        requirementNumber: {
+        requirementSerialNumber: {
             type: String,
             unique: true,
             index: true
@@ -18,17 +13,13 @@ const requirementSchema = new mongoose.Schema(
             index: true
         },
         title: {
-            type: String,
-
-            maxlength: 500
+            type: String
         },
         description: {
-            type: String,
-            maxlength: 10000
+            type: String
         },
         detailedDescription: {
-            type: String,
-            maxlength: 50000
+            type: String
         },
         requirementType: {
             type: String,

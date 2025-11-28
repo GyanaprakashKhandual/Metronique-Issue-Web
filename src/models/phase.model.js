@@ -3,27 +3,21 @@ import mongoose from 'mongoose';
 const phaseSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-
-
-            minlength: 2,
-            maxlength: 100
+            type: String
         },
         slug: {
-            type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
+            type: String
+        },
+        phaseSerialNumber: {
+            type: String
         },
         description: {
             type: String,
-            maxlength: 1000,
             default: null
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         projectId: {

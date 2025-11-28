@@ -5,31 +5,21 @@ const slideSchema = new mongoose.Schema(
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-
             index: true
         },
         title: {
-            type: String,
-
-
-            minlength: 2,
-            maxlength: 500
+            type: String
         },
         slug: {
-            type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
+            type: String
         },
         description: {
             type: String,
-            maxlength: 2000,
             default: null
         },
         contextType: {

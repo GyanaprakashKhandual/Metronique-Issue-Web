@@ -1,30 +1,25 @@
 import mongoose from 'mongoose';
+import { hashToken, compareToken } from '../utils/token.util.js';
 
 const inviteSchema = new mongoose.Schema(
     {
         email: {
             type: String,
-
-            lowercase: true,
-            match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
             index: true
         },
         inviteToken: {
             type: String,
-
             unique: true,
             index: true
         },
         inviteType: {
             type: String,
             enum: ['organization', 'department', 'team', 'project'],
-
             index: true
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         departmentId: {
@@ -331,6 +326,19 @@ inviteSchema.pre('save', function (next) {
 
     if (this.status === 'accepted' || this.status === 'rejected' || this.status === 'revoked') {
         this.isActive = false;
+    }
+
+    next();
+});
+
+// Hash inviteToken on save if it's not already hashed
+inviteSchema.pre('save', function (next) {
+    try {
+        if (this.isModified('inviteToken') && this.inviteToken && !String(this.inviteToken).startsWith('$2')) {
+            this.inviteToken = hashToken(this.inviteToken);
+        }
+    } catch (e) {
+        // noop - proceed without hashing if error
     }
 
     next();
@@ -658,11 +666,20 @@ inviteSchema.statics.findByEmail = function (email, organizationId) {
     });
 };
 
-inviteSchema.statics.findByToken = function (inviteToken) {
-    return this.findOne({
-        inviteToken,
-        isActive: true
-    });
+inviteSchema.statics.findByToken = async function (inviteToken) {
+    if (!inviteToken) return null;
+
+    // try direct match first (handles legacy plaintext tokens)
+    const direct = await this.findOne({ inviteToken: inviteToken, isActive: true });
+    if (direct) return direct;
+
+    // fall back to scanning recent active invites and comparing hashes
+    const candidates = await this.find({ isActive: true }).sort({ createdAt: -1 }).limit(2000);
+    for (const c of candidates) {
+        if (compareToken(inviteToken, c.inviteToken)) return c;
+    }
+
+    return null;
 };
 
 inviteSchema.statics.cleanupExpiredInvites = async function (organizationId) {

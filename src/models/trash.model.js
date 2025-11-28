@@ -5,13 +5,11 @@ const trashSchema = new mongoose.Schema(
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-
             index: true
         },
         resourceType: {

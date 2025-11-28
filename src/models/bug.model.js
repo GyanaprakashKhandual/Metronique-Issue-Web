@@ -4,12 +4,6 @@ const bugSchema = new mongoose.Schema(
     {
         serialNumber: {
             type: String,
-            unique: true,
-            index: true
-        },
-        bugNumber: {
-            type: String,
-            unique: true,
             index: true
         },
         organizationId: {
@@ -19,21 +13,14 @@ const bugSchema = new mongoose.Schema(
         },
         title: {
             type: String,
-
-            maxlength: 500
         },
         description: {
             type: String,
-            maxlength: 10000
         },
-        stepsToReproduce: [
-            {
-                stepNumber: Number,
-                stepDescription: String,
-                expectedResult: String,
-                actualResult: String
-            }
-        ],
+        stepsToReproduce: {
+            type: Object,
+            default: []
+        },
         bugType: {
             type: String,
             default: 'functional'
@@ -897,47 +884,60 @@ bugSchema.virtual('likeCount').get(function () {
     return this.likes ? this.likes.length : 0;
 });
 
-bugSchema.index({ organizationId: 1, status: 1, isDeleted: 0 });
-bugSchema.index({ organizationId: 1, reportedBy: 1, isDeleted: 0 });
-bugSchema.index({ organizationId: 1, 'assignedTo.userId': 1, isDeleted: 0 });
-bugSchema.index({ organizationId: 1, priority: 1, status: 1 });
+// Optimized indexes for better query performance
+bugSchema.index({ organizationId: 1, status: 1, isDeleted: 1, createdAt: -1 });
+bugSchema.index({ organizationId: 1, reportedBy: 1, isDeleted: 1 });
+bugSchema.index({ organizationId: 1, 'assignedTo.userId': 1, status: 1 });
+bugSchema.index({ organizationId: 1, priority: 1, status: 1, dueDate: 1 });
 bugSchema.index({ organizationId: 1, severity: 1, status: 1 });
-bugSchema.index({ contextType: 1, contextId: 1, isDeleted: 0 });
-bugSchema.index({ projectId: 1, status: 1, isDeleted: 0 });
-bugSchema.index({ sprintId: 1, status: 1, isDeleted: 0 });
-bugSchema.index({ departmentId: 1, isDeleted: 0 });
-bugSchema.index({ teamId: 1, isDeleted: 0 });
-bugSchema.index({ phaseId: 1, isDeleted: 0 });
-bugSchema.index({ folderId: 1, isDeleted: 0 });
-bugSchema.index({ serialNumber: 1 });
-bugSchema.index({ bugNumber: 1 });
-bugSchema.index({ bugType: 1, status: 1 });
-bugSchema.index({ dueDate: 1, status: 1 });
-bugSchema.index({ createdAt: -1 });
-bugSchema.index({ updatedAt: -1 });
-bugSchema.index({ resolvedDate: -1 });
-bugSchema.index({ closedDate: -1 });
-bugSchema.index({ 'tags.tagName': 1 });
-bugSchema.index({ 'watchers.userId': 1 });
-bugSchema.index({ searchableContent: 'text', title: 'text', description: 'text' });
-bugSchema.index({ isPinned: 1, organizationId: 1 });
-bugSchema.index({ isFavorite: 1, organizationId: 1 });
+bugSchema.index({ contextType: 1, contextId: 1, isDeleted: 1 });
+bugSchema.index({ projectId: 1, status: 1, isDeleted: 1, createdAt: -1 });
+bugSchema.index({ sprintId: 1, status: 1, isDeleted: 1 });
+bugSchema.index({ departmentId: 1, isDeleted: 1, createdAt: -1 });
+bugSchema.index({ teamId: 1, isDeleted: 1, createdAt: -1 });
+bugSchema.index({ phaseId: 1, isDeleted: 1 });
+bugSchema.index({ folderId: 1, isDeleted: 1 });
+bugSchema.index({ serialNumber: 1, organizationId: 1 });
+bugSchema.index({ bugNumber: 1, organizationId: 1 });
+bugSchema.index({ organizationId: 1, dueDate: 1, status: 1 });
+bugSchema.index({ createdAt: -1, organizationId: 1 });
+bugSchema.index({ deletedAt: 1, isDeleted: 1 }, { sparse: true });
+bugSchema.index({ 'tags.tagName': 1, organizationId: 1 });
+bugSchema.index({ searchableContent: 'text', title: 'text', description: 'text', 'tags.tagName': 'text' });
+bugSchema.index({ isPinned: 1, organizationId: 1, createdAt: -1 });
+bugSchema.index({ isFavorite: 1, 'favoritedBy.userId': 1 });
+bugSchema.index({ status: 1, isDeleted: 1, organizationId: 1 });
+bugSchema.index({ resolvedDate: 1, closedDate: 1 }, { sparse: true });
 
 bugSchema.pre('save', async function (next) {
     if (this.isNew && !this.serialNumber) {
-        const year = new Date().getFullYear();
-        const month = String(new Date().getMonth() + 1).padStart(2, '0');
-        const count = await mongoose.model('Bug').countDocuments({
-            organizationId: this.organizationId
-        });
-        this.serialNumber = `BUG-${year}${month}-${String(count + 1).padStart(6, '0')}`;
+        try {
+            const year = new Date().getFullYear();
+            const month = String(new Date().getMonth() + 1).padStart(2, '0');
+            const counterKey = `bug-${this.organizationId}-${year}${month}`;
+            const counter = await mongoose.model('Counter').findOneAndUpdate(
+                { _id: counterKey },
+                { $inc: { count: 1 } },
+                { new: true, upsert: true }
+            );
+            this.serialNumber = `BUG-${year}${month}-${String(counter.count).padStart(6, '0')}`;
+        } catch (e) {
+            this.serialNumber = `BUG-${Date.now()}`;
+        }
     }
 
     if (this.isNew && !this.bugNumber) {
-        const count = await mongoose.model('Bug').countDocuments({
-            organizationId: this.organizationId
-        });
-        this.bugNumber = `BUG-${String(count + 1).padStart(6, '0')}`;
+        try {
+            const counterKey = `bugnum-${this.organizationId}`;
+            const counter = await mongoose.model('Counter').findOneAndUpdate(
+                { _id: counterKey },
+                { $inc: { count: 1 } },
+                { new: true, upsert: true }
+            );
+            this.bugNumber = `BUG-${String(counter.count).padStart(6, '0')}`;
+        } catch (e) {
+            this.bugNumber = `BUG-${Date.now()}`;
+        }
     }
 
     let searchContent = `${this.title || ''} ${this.description || ''}`;

@@ -5,24 +5,20 @@ const accessControlSchema = new mongoose.Schema(
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-
             index: true
         },
         resourceType: {
             type: String,
             enum: ['organization', 'department', 'team', 'project', 'phase', 'sprint', 'folder', 'document', 'sheet', 'slide', 'bug', 'requirement'],
-
             index: true
         },
         resourceId: {
             type: mongoose.Schema.Types.ObjectId,
-
             index: true
         },
         permission: {

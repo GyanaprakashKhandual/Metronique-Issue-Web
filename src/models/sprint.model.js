@@ -3,33 +3,26 @@ import mongoose from 'mongoose';
 const sprintSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-
-
-            minlength: 2,
-            maxlength: 100
+            type: String
         },
         slug: {
-            type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
+            type: String
         },
         description: {
             type: String,
-            maxlength: 1000,
             default: null
+        },
+        sprintSerialNumber: {
+            type: String
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         projectId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Project',
-
             index: true
         },
         phaseId: {

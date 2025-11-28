@@ -1,23 +1,20 @@
 import mongoose from 'mongoose';
+import { hashToken, compareToken } from '../utils/token.util.js';
 
 const mfaSetupSchema = new mongoose.Schema(
     {
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-
-            unique: true,
             index: true
         },
         userEmail: {
             type: String,
-            lowercase: true,
             default: null
         },
         mfaEnabled: {
@@ -738,13 +735,25 @@ mfaSetupSchema.methods.verifySms = function (verifiedAt = new Date()) {
 };
 
 mfaSetupSchema.methods.recordBackupCodeUsage = function (code) {
-    const backupCode = this.totp.backupCodes.find(bc => bc.code === code);
+    if (!code) return false;
 
-    if (backupCode && !backupCode.used) {
-        backupCode.used = true;
-        backupCode.usedAt = new Date();
-        this.addMfaHistory('backup_code_used', 'backup', { status: 'success' });
-        return true;
+    for (const bc of this.totp.backupCodes) {
+        if (!bc.used && compareToken(code, bc.code)) {
+            bc.used = true;
+            bc.usedAt = new Date();
+            this.addMfaHistory('backup_code_used', 'backup', { status: 'success' });
+            return true;
+        }
+    }
+
+    // also check backup.codes (backup object) for compatibility
+    for (const bc of this.backup.codes) {
+        if (!bc.used && compareToken(code, bc.code)) {
+            bc.used = true;
+            bc.usedAt = new Date();
+            this.addMfaHistory('backup_code_used', 'backup', { status: 'success' });
+            return true;
+        }
     }
 
     return false;
@@ -753,17 +762,23 @@ mfaSetupSchema.methods.recordBackupCodeUsage = function (code) {
 mfaSetupSchema.methods.generateBackupCodes = function (count = 10) {
     const codes = [];
 
+    const plainCodes = [];
+    const hashedCodes = [];
+
     for (let i = 0; i < count; i++) {
         const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-        codes.push({
-            code,
+        plainCodes.push(code);
+        hashedCodes.push({
+            code: hashToken(code),
             used: false,
             usedAt: null,
             createdAt: new Date()
         });
     }
 
-    this.backup.codes = codes;
+    // store hashed versions in both locations used by schema
+    this.totp.backupCodes = hashedCodes.slice();
+    this.backup.codes = hashedCodes.slice();
     this.backup.enabled = true;
     this.backup.generatedAt = new Date();
 
@@ -772,7 +787,7 @@ mfaSetupSchema.methods.generateBackupCodes = function (count = 10) {
         status: 'success'
     });
 
-    return codes.map(c => c.code);
+    return plainCodes;
 };
 
 mfaSetupSchema.methods.markBackupCodesDownloaded = function () {
@@ -789,7 +804,7 @@ mfaSetupSchema.methods.addTrustedDevice = function (deviceId, deviceName, device
     if (existingDevice) {
         existingDevice.trusted = true;
         existingDevice.trustedAt = new Date();
-        existingDevice.trustToken = trustToken;
+        existingDevice.trustToken = trustToken ? hashToken(trustToken) : null;
         existingDevice.expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
         existingDevice.lastUsedAt = new Date();
     } else {
@@ -803,7 +818,7 @@ mfaSetupSchema.methods.addTrustedDevice = function (deviceId, deviceName, device
             userAgent: deviceInfo.userAgent,
             trusted: true,
             trustedAt: new Date(),
-            trustToken,
+            trustToken: trustToken ? hashToken(trustToken) : null,
             lastUsedAt: new Date(),
             expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
         });
@@ -813,6 +828,20 @@ mfaSetupSchema.methods.addTrustedDevice = function (deviceId, deviceName, device
         deviceId,
         deviceName
     });
+};
+
+// Verify a provided trust token against stored trusted devices (returns device or null)
+mfaSetupSchema.methods.verifyTrustToken = function (trustToken) {
+    if (!trustToken) return null;
+
+    for (const device of this.trustedDevices) {
+        if (device.trustToken && compareToken(trustToken, device.trustToken)) {
+            // ensure not expired and trusted
+            if (device.trusted && (!device.expiresAt || device.expiresAt > new Date())) return device;
+        }
+    }
+
+    return null;
 };
 
 mfaSetupSchema.methods.removeTrustedDevice = function (deviceId) {

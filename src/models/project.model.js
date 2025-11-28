@@ -1,31 +1,23 @@
 import mongoose from 'mongoose';
+import { hashToken, compareToken } from '../utils/token.util.js';
 
 const projectSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-
-
-            minlength: 2,
-            maxlength: 100
+            type: String
         },
         slug: {
-            type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
+            type: String
         },
         description: {
             type: String,
-            maxlength: 1000,
             default: null
         },
+        projectSerialNumber: {
+            type: String
+        },
         key: {
-            type: String,
-
-            unique: true,
-            uppercase: true,
-            match: /^[A-Z][A-Z0-9]{0,9}$/
+            type: String
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -858,9 +850,10 @@ projectSchema.methods.updateRequirementCounts = function (completedCount) {
 };
 
 projectSchema.methods.createInvitation = function (email, inviteToken, expiresAt, invitedBy, role = 'member', autoAccessFolders = [], autoAccessSprints = [], autoAccessPermission = 'view') {
+    const hashed = hashToken(inviteToken);
     this.invitations.push({
         email,
-        inviteToken,
+        inviteToken: hashed,
         role,
         invitedAt: new Date(),
         invitedBy,
@@ -872,12 +865,16 @@ projectSchema.methods.createInvitation = function (email, inviteToken, expiresAt
     });
 };
 
-projectSchema.methods.getInvitationByToken = function (inviteToken) {
-    return this.invitations.find(inv => inv.inviteToken === inviteToken);
+projectSchema.methods.getInvitationByToken = async function (inviteToken) {
+    if (!inviteToken) return null;
+    for (const inv of this.invitations) {
+        if (compareToken(inviteToken, inv.inviteToken)) return inv;
+    }
+    return null;
 };
 
-projectSchema.methods.acceptInvitation = function (inviteToken, userId) {
-    const invitation = this.getInvitationByToken(inviteToken);
+projectSchema.methods.acceptInvitation = async function (inviteToken, userId) {
+    const invitation = await this.getInvitationByToken(inviteToken);
 
     if (invitation && !invitation.accepted) {
         invitation.accepted = true;
@@ -890,12 +887,12 @@ projectSchema.methods.acceptInvitation = function (inviteToken, userId) {
     return null;
 };
 
-projectSchema.methods.cancelInvitation = function (inviteToken) {
-    this.invitations = this.invitations.filter(inv => inv.inviteToken !== inviteToken);
+projectSchema.methods.cancelInvitation = async function (inviteToken) {
+    this.invitations = this.invitations.filter(inv => !compareToken(inviteToken, inv.inviteToken));
 };
 
-projectSchema.methods.isInvitationExpired = function (inviteToken) {
-    const invitation = this.getInvitationByToken(inviteToken);
+projectSchema.methods.isInvitationExpired = async function (inviteToken) {
+    const invitation = await this.getInvitationByToken(inviteToken);
     return invitation && invitation.expiresAt < new Date();
 };
 

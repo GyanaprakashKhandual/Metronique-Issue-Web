@@ -1,29 +1,23 @@
 import mongoose from 'mongoose';
+import { hashToken, compareToken } from '../utils/token.util.js';
 
 const departmentSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-
-
-            minlength: 2,
-            maxlength: 100
+            type: String
         },
         slug: {
-            type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
+            type: String
+        },
+        departmentId: {
+            type: String
         },
         description: {
-            type: String,
-            maxlength: 500,
-            default: null
+            type: String
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-
             index: true
         },
         parentDepartmentId: {
@@ -570,9 +564,10 @@ departmentSchema.methods.removeSlide = function (slideId) {
 };
 
 departmentSchema.methods.createInvitation = function (email, inviteToken, expiresAt, invitedBy, role = 'member', autoAccessGrant = false, autoAccessTeams = [], autoAccessPermission = 'view') {
+    const hashed = hashToken(inviteToken);
     this.invitations.push({
         email,
-        inviteToken,
+        inviteToken: hashed,
         role,
         invitedAt: new Date(),
         invitedBy,
@@ -584,12 +579,16 @@ departmentSchema.methods.createInvitation = function (email, inviteToken, expire
     });
 };
 
-departmentSchema.methods.getInvitationByToken = function (inviteToken) {
-    return this.invitations.find(inv => inv.inviteToken === inviteToken);
+departmentSchema.methods.getInvitationByToken = async function (inviteToken) {
+    if (!inviteToken) return null;
+    for (const inv of this.invitations) {
+        if (compareToken(inviteToken, inv.inviteToken)) return inv;
+    }
+    return null;
 };
 
-departmentSchema.methods.acceptInvitation = function (inviteToken, userId) {
-    const invitation = this.getInvitationByToken(inviteToken);
+departmentSchema.methods.acceptInvitation = async function (inviteToken, userId) {
+    const invitation = await this.getInvitationByToken(inviteToken);
 
     if (invitation && !invitation.accepted) {
         invitation.accepted = true;
@@ -602,12 +601,12 @@ departmentSchema.methods.acceptInvitation = function (inviteToken, userId) {
     return null;
 };
 
-departmentSchema.methods.cancelInvitation = function (inviteToken) {
-    this.invitations = this.invitations.filter(inv => inv.inviteToken !== inviteToken);
+departmentSchema.methods.cancelInvitation = async function (inviteToken) {
+    this.invitations = this.invitations.filter(inv => !compareToken(inviteToken, inv.inviteToken));
 };
 
-departmentSchema.methods.isInvitationExpired = function (inviteToken) {
-    const invitation = this.getInvitationByToken(inviteToken);
+departmentSchema.methods.isInvitationExpired = async function (inviteToken) {
+    const invitation = await this.getInvitationByToken(inviteToken);
     return invitation && invitation.expiresAt < new Date();
 };
 

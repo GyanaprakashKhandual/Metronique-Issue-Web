@@ -160,18 +160,13 @@ const notificationSchema = new mongoose.Schema(
             default: null
         },
         title: {
-            type: String,
-
-            maxlength: 200
+            type: String
         },
         message: {
-            type: String,
-
-            maxlength: 1000
+            type: substring
         },
         shortMessage: {
             type: String,
-            maxlength: 150,
             default: null
         },
         actionUrl: {

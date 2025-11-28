@@ -11,26 +11,16 @@ const documentSchema = new mongoose.Schema(
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-
             index: true
         },
         title: {
             type: String,
-
-
-            minlength: 2,
-            maxlength: 500
         },
         slug: {
             type: String,
-
-            lowercase: true,
-            match: /^[a-z0-9-]+$/
         },
         description: {
             type: String,
-            maxlength: 2000,
-            default: null
         },
         contextType: {
             type: String,
@@ -49,12 +39,10 @@ const documentSchema = new mongoose.Schema(
                 'folder',
                 'sub_folder'
             ],
-
             index: true
         },
         contextId: {
             type: mongoose.Schema.Types.ObjectId,
-
             index: true
         },
         contextHierarchyPath: {
