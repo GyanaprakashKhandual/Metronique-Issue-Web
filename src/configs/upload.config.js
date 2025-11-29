@@ -35,4 +35,4 @@ const uploadConfig = {
     }
 };
 
-module.exports = uploadConfig;
+export default uploadConfig;

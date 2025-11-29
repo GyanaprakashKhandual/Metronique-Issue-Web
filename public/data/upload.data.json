@@ -1,0 +1,659 @@
+{
+    "apiVersion": "1.0.0",
+    "apiTitle": "Bug Tracker File Upload API Documentation",
+    "baseURL": "http://localhost:5000/api/v1",
+    "description": "Complete File Upload Management API with single/multiple file uploads, deletion, filtering, and statistics",
+    "contact": {
+        "name": "API Support",
+        "email": "support@bugtracker.com",
+        "website": "https://bugtracker.com"
+    },
+    "authentication": {
+        "type": "Bearer Token",
+        "scheme": "JWT",
+        "headerName": "Authorization",
+        "format": "Bearer {token}",
+        "exampleToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGQ1ZWM0OWMxMjM0NTY3ODkwYWJjMTIiLCJpYXQiOjE2MjQ3NzY3NzcsImV4cCI6MTYyNDg2MzE3N30.abc123"
+    },
+    "fileConstraints": {
+        "maxFileSize": "50MB",
+        "maxFileSizeBytes": 52428800,
+        "maxMultipleFiles": 10,
+        "allowedTypes": [
+            "image",
+            "video",
+            "document"
+        ],
+        "allowedMimeTypes": [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "video/mp4",
+            "video/mpeg",
+            "video/quicktime",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/plain",
+            "application/zip",
+            "application/x-rar-compressed"
+        ],
+        "allowedExtensions": [
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "webp",
+            "mp4",
+            "mpeg",
+            "mov",
+            "pdf",
+            "doc",
+            "docx",
+            "xls",
+            "xlsx",
+            "txt",
+            "zip",
+            "rar"
+        ]
+    },
+    "endpoints": {
+        "fileUpload": {
+            "category": "File Upload",
+            "description": "File upload and management operations",
+            "endpoints": [
+                {
+                    "id": "upload-single",
+                    "title": "Upload Single File",
+                    "method": "POST",
+                    "path": "/files/upload",
+                    "fullURL": "http://localhost:5000/api/v1/files/upload",
+                    "description": "Upload a single file to the server",
+                    "authentication": true,
+                    "requestBody": {
+                        "contentType": "multipart/form-data",
+                        "schema": {
+                            "file": {
+                                "type": "file",
+                                "required": true,
+                                "description": "File to upload (max 50MB)",
+                                "accept": "image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "status": "Created",
+                            "description": "File uploaded successfully",
+                            "body": {
+                                "success": true,
+                                "message": "File uploaded successfully",
+                                "data": {
+                                    "id": "60d5ec49c1234567890abc20",
+                                    "filename": "document.pdf",
+                                    "uploadedFilename": "1705330200000_document.pdf",
+                                    "fileUrl": "http://localhost:5000/uploads/1705330200000_document.pdf",
+                                    "mimeType": "application/pdf",
+                                    "fileType": "document",
+                                    "size": 2048576,
+                                    "sizeFormatted": "2.0 MB",
+                                    "uploadedAt": "2024-01-15T10:30:00Z"
+                                }
+                            }
+                        },
+                        "400": {
+                            "status": "Bad Request",
+                            "description": "No file uploaded or invalid file",
+                            "body": {
+                                "success": false,
+                                "message": "No file uploaded"
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required",
+                            "body": {
+                                "success": false,
+                                "message": "No token provided. Authorization denied."
+                            }
+                        },
+                        "413": {
+                            "status": "Payload Too Large",
+                            "description": "File size exceeds limit",
+                            "body": {
+                                "success": false,
+                                "message": "File size exceeds maximum limit of 50MB"
+                            }
+                        },
+                        "415": {
+                            "status": "Unsupported Media Type",
+                            "description": "Unsupported file type",
+                            "body": {
+                                "success": false,
+                                "message": "File type not allowed. Allowed types: jpg, jpeg, png, gif, webp, mp4, mpeg, mov, pdf, doc, docx, xls, xlsx, txt, zip, rar"
+                            }
+                        },
+                        "500": {
+                            "status": "Internal Server Error",
+                            "description": "File upload failed",
+                            "body": {
+                                "success": false,
+                                "message": "File upload failed",
+                                "error": "Database connection error"
+                            }
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Upload PDF Document",
+                            "description": "User uploads a PDF file for project documentation",
+                            "file": "project_requirements.pdf",
+                            "fileSize": "1.5 MB",
+                            "mimeType": "application/pdf",
+                            "expectedOutcome": "PDF uploaded successfully, file accessible via URL"
+                        },
+                        {
+                            "title": "Upload Screenshot Image",
+                            "description": "User uploads bug screenshot",
+                            "file": "bug_screenshot.png",
+                            "fileSize": "512 KB",
+                            "mimeType": "image/png",
+                            "expectedOutcome": "Image uploaded, accessible for display"
+                        },
+                        {
+                            "title": "Upload Video Recording",
+                            "description": "User uploads screen recording of issue",
+                            "file": "bug_recording.mp4",
+                            "fileSize": "25 MB",
+                            "mimeType": "video/mp4",
+                            "expectedOutcome": "Video uploaded successfully"
+                        }
+                    ]
+                },
+                {
+                    "id": "upload-multiple",
+                    "title": "Upload Multiple Files",
+                    "method": "POST",
+                    "path": "/files/upload-multiple",
+                    "fullURL": "http://localhost:5000/api/v1/files/upload-multiple",
+                    "description": "Upload up to 10 files at once",
+                    "authentication": true,
+                    "requestBody": {
+                        "contentType": "multipart/form-data",
+                        "schema": {
+                            "files": {
+                                "type": "file[]",
+                                "required": true,
+                                "description": "Files to upload (max 10 files, 50MB each)",
+                                "maxFiles": 10,
+                                "accept": "image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "status": "Created",
+                            "description": "Files uploaded successfully",
+                            "body": {
+                                "success": true,
+                                "message": "3 file(s) uploaded successfully",
+                                "data": [
+                                    {
+                                        "id": "60d5ec49c1234567890abc20",
+                                        "filename": "image1.jpg",
+                                        "uploadedFilename": "1705330200000_image1.jpg",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200000_image1.jpg",
+                                        "mimeType": "image/jpeg",
+                                        "fileType": "image",
+                                        "size": 1024000,
+                                        "sizeFormatted": "1.0 MB",
+                                        "uploadedAt": "2024-01-15T10:30:00Z"
+                                    },
+                                    {
+                                        "id": "60d5ec49c1234567890abc21",
+                                        "filename": "image2.png",
+                                        "uploadedFilename": "1705330200001_image2.png",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200001_image2.png",
+                                        "mimeType": "image/png",
+                                        "fileType": "image",
+                                        "size": 2048576,
+                                        "sizeFormatted": "2.0 MB",
+                                        "uploadedAt": "2024-01-15T10:30:01Z"
+                                    },
+                                    {
+                                        "id": "60d5ec49c1234567890abc22",
+                                        "filename": "document.pdf",
+                                        "uploadedFilename": "1705330200002_document.pdf",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200002_document.pdf",
+                                        "mimeType": "application/pdf",
+                                        "fileType": "document",
+                                        "size": 3072000,
+                                        "sizeFormatted": "3.0 MB",
+                                        "uploadedAt": "2024-01-15T10:30:02Z"
+                                    }
+                                ]
+                            }
+                        },
+                        "400": {
+                            "status": "Bad Request",
+                            "description": "No files uploaded or validation error",
+                            "body": {
+                                "success": false,
+                                "message": "No files could be uploaded"
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        },
+                        "413": {
+                            "status": "Payload Too Large",
+                            "description": "One or more files exceed size limit"
+                        },
+                        "500": {
+                            "status": "Internal Server Error",
+                            "description": "Files upload failed"
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Batch Upload Project Documentation",
+                            "description": "User uploads multiple documentation files",
+                            "files": [
+                                "requirements.pdf",
+                                "design.docx",
+                                "implementation_guide.pdf"
+                            ],
+                            "expectedOutcome": "All 3 files uploaded, accessible individually"
+                        },
+                        {
+                            "title": "Upload Bug Evidence Bundle",
+                            "description": "User uploads screenshots and logs related to bug",
+                            "files": [
+                                "screenshot1.png",
+                                "screenshot2.png",
+                                "error_log.txt",
+                                "console_output.txt"
+                            ],
+                            "expectedOutcome": "All files uploaded successfully, linked to bug report"
+                        }
+                    ]
+                },
+                {
+                    "id": "get-files",
+                    "title": "Get All Files",
+                    "method": "GET",
+                    "path": "/files/files",
+                    "fullURL": "http://localhost:5000/api/v1/files/files",
+                    "description": "Retrieve all files uploaded by the authenticated user",
+                    "authentication": true,
+                    "responses": {
+                        "200": {
+                            "status": "OK",
+                            "description": "Files retrieved successfully",
+                            "body": {
+                                "success": true,
+                                "data": [
+                                    {
+                                        "_id": "60d5ec49c1234567890abc20",
+                                        "filename": "document.pdf",
+                                        "uploadedFilename": "1705330200000_document.pdf",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200000_document.pdf",
+                                        "mimeType": "application/pdf",
+                                        "fileType": "document",
+                                        "size": 2048576,
+                                        "sizeFormatted": "2.0 MB",
+                                        "userId": "60d5ec49c1234567890abc12",
+                                        "uploadedAt": "2024-01-15T10:30:00Z",
+                                        "updatedAt": "2024-01-15T10:30:00Z"
+                                    },
+                                    {
+                                        "_id": "60d5ec49c1234567890abc21",
+                                        "filename": "image.png",
+                                        "uploadedFilename": "1705330200001_image.png",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200001_image.png",
+                                        "mimeType": "image/png",
+                                        "fileType": "image",
+                                        "size": 1024000,
+                                        "sizeFormatted": "1.0 MB",
+                                        "userId": "60d5ec49c1234567890abc12",
+                                        "uploadedAt": "2024-01-15T10:45:00Z",
+                                        "updatedAt": "2024-01-15T10:45:00Z"
+                                    }
+                                ],
+                                "count": 2
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        },
+                        "500": {
+                            "status": "Internal Server Error",
+                            "description": "Failed to fetch files"
+                        }
+                    }
+                },
+                {
+                    "id": "get-files-by-type",
+                    "title": "Get Files by Type",
+                    "method": "GET",
+                    "path": "/files/files/type/:fileType",
+                    "fullURL": "http://localhost:5000/api/v1/files/files/type/:fileType",
+                    "description": "Retrieve files of a specific type (image, video, document)",
+                    "authentication": true,
+                    "parameters": {
+                        "fileType": {
+                            "in": "path",
+                            "required": true,
+                            "type": "string",
+                            "enum": [
+                                "image",
+                                "video",
+                                "document"
+                            ],
+                            "description": "File type to filter"
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "status": "OK",
+                            "description": "Files retrieved successfully",
+                            "body": {
+                                "success": true,
+                                "data": [
+                                    {
+                                        "_id": "60d5ec49c1234567890abc20",
+                                        "filename": "screenshot.png",
+                                        "uploadedFilename": "1705330200000_screenshot.png",
+                                        "fileUrl": "http://localhost:5000/uploads/1705330200000_screenshot.png",
+                                        "mimeType": "image/png",
+                                        "fileType": "image",
+                                        "size": 1024000,
+                                        "sizeFormatted": "1.0 MB",
+                                        "uploadedAt": "2024-01-15T10:30:00Z"
+                                    }
+                                ],
+                                "count": 1,
+                                "fileType": "image"
+                            }
+                        },
+                        "400": {
+                            "status": "Bad Request",
+                            "description": "Invalid file type",
+                            "body": {
+                                "success": false,
+                                "message": "Invalid file type. Allowed types: image, video, document"
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Get All Images",
+                            "description": "User retrieves all uploaded images",
+                            "parameter": "image",
+                            "expectedOutcome": "List of all image files with URLs"
+                        },
+                        {
+                            "title": "Get All Documents",
+                            "description": "User retrieves all uploaded documents",
+                            "parameter": "document",
+                            "expectedOutcome": "List of all PDF, Word, Excel files"
+                        },
+                        {
+                            "title": "Get All Videos",
+                            "description": "User retrieves all uploaded videos",
+                            "parameter": "video",
+                            "expectedOutcome": "List of all video files"
+                        }
+                    ]
+                },
+                {
+                    "id": "delete-file",
+                    "title": "Delete Single File",
+                    "method": "DELETE",
+                    "path": "/files/delete/:fileId",
+                    "fullURL": "http://localhost:5000/api/v1/files/delete/:fileId",
+                    "description": "Delete a specific file by ID",
+                    "authentication": true,
+                    "parameters": {
+                        "fileId": {
+                            "in": "path",
+                            "required": true,
+                            "type": "string",
+                            "description": "File ID to delete"
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "status": "OK",
+                            "description": "File deleted successfully",
+                            "body": {
+                                "success": true,
+                                "message": "File deleted successfully"
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        },
+                        "404": {
+                            "status": "Not Found",
+                            "description": "File not found",
+                            "body": {
+                                "success": false,
+                                "message": "File not found"
+                            }
+                        },
+                        "500": {
+                            "status": "Internal Server Error",
+                            "description": "Failed to delete file"
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Delete Outdated Document",
+                            "description": "User deletes an old documentation file",
+                            "fileId": "60d5ec49c1234567890abc20",
+                            "expectedOutcome": "File and associated metadata removed from server"
+                        }
+                    ]
+                },
+                {
+                    "id": "delete-multiple-files",
+                    "title": "Delete Multiple Files",
+                    "method": "POST",
+                    "path": "/files/delete-multiple",
+                    "fullURL": "http://localhost:5000/api/v1/files/delete-multiple",
+                    "description": "Delete multiple files at once",
+                    "authentication": true,
+                    "requestBody": {
+                        "contentType": "application/json",
+                        "schema": {
+                            "fileIds": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "required": true,
+                                "description": "Array of file IDs to delete",
+                                "minItems": 1
+                            }
+                        },
+                        "example": {
+                            "fileIds": [
+                                "60d5ec49c1234567890abc20",
+                                "60d5ec49c1234567890abc21",
+                                "60d5ec49c1234567890abc22"
+                            ]
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "status": "OK",
+                            "description": "Files deleted successfully",
+                            "body": {
+                                "success": true,
+                                "message": "3 file(s) deleted successfully"
+                            }
+                        },
+                        "400": {
+                            "status": "Bad Request",
+                            "description": "Invalid request",
+                            "body": {
+                                "success": false,
+                                "message": "Please provide file IDs"
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        },
+                        "404": {
+                            "status": "Not Found",
+                            "description": "No files found",
+                            "body": {
+                                "success": false,
+                                "message": "No files found"
+                            }
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Clean Up Old Files",
+                            "description": "User deletes multiple obsolete files in batch",
+                            "fileIds": [
+                                "60d5ec49c1234567890abc20",
+                                "60d5ec49c1234567890abc21"
+                            ],
+                            "expectedOutcome": "Both files removed from storage and database"
+                        }
+                    ]
+                },
+                {
+                    "id": "get-file-stats",
+                    "title": "Get File Statistics",
+                    "method": "GET",
+                    "path": "/files/stats",
+                    "fullURL": "http://localhost:5000/api/v1/files/stats",
+                    "description": "Retrieve statistics about uploaded files",
+                    "authentication": true,
+                    "responses": {
+                        "200": {
+                            "status": "OK",
+                            "description": "Statistics retrieved successfully",
+                            "body": {
+                                "success": true,
+                                "data": {
+                                    "totalFiles": 15,
+                                    "totalSize": 157286400,
+                                    "totalSizeFormatted": "150.0 MB",
+                                    "byType": {
+                                        "image": {
+                                            "count": 8,
+                                            "size": 52428800,
+                                            "sizeFormatted": "50.0 MB"
+                                        },
+                                        "video": {
+                                            "count": 3,
+                                            "size": 83886080,
+                                            "sizeFormatted": "80.0 MB"
+                                        },
+                                        "document": {
+                                            "count": 4,
+                                            "size": 20971520,
+                                            "sizeFormatted": "20.0 MB"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "401": {
+                            "status": "Unauthorized",
+                            "description": "Authentication required"
+                        },
+                        "500": {
+                            "status": "Internal Server Error",
+                            "description": "Failed to get file statistics"
+                        }
+                    },
+                    "useCases": [
+                        {
+                            "title": "Monitor Storage Usage",
+                            "description": "Admin checks total storage usage",
+                            "expectedOutcome": "Displays total files, total storage used, and breakdown by type"
+                        },
+                        {
+                            "title": "Storage Quota Analysis",
+                            "description": "User checks how much storage they've used",
+                            "expectedOutcome": "Shows storage breakdown by file type"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "errorCodes": {
+        "400": {
+            "description": "Bad Request",
+            "examples": [
+                "No file uploaded",
+                "Invalid file type",
+                "Validation error"
+            ]
+        },
+        "401": {
+            "description": "Unauthorized",
+            "examples": [
+                "No token provided",
+                "Invalid token",
+                "Token expired"
+            ]
+        },
+        "404": {
+            "description": "Not Found",
+            "examples": [
+                "File not found",
+                "No files found"
+            ]
+        },
+        "413": {
+            "description": "Payload Too Large",
+            "examples": [
+                "File size exceeds 50MB limit"
+            ]
+        },
+        "415": {
+            "description": "Unsupported Media Type",
+            "examples": [
+                "File type not allowed",
+                "Invalid MIME type"
+            ]
+        },
+        "500": {
+            "description": "Internal Server Error",
+            "examples": [
+                "File upload failed",
+                "Database error",
+                "Server error"
+            ]
+        }
+    },
+    "bestPractices": [
+        "Always check file size before upload",
+        "Use multipart/form-data for file uploads",
+        "Validate file types on client side before sending",
+        "Store file IDs for batch operations",
+        "Monitor storage statistics regularly",
+        "Delete unused files to maintain storage",
+        "Use appropriate file type filters when retrieving files",
+        "Include error handling in file upload workflows"
+    ]
+}

@@ -1,5 +1,5 @@
-const dotenv = require('dotenv');
-const path = require('path');
+import path from 'path';
+import dotenv from 'dotenv'
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
@@ -179,9 +179,11 @@ const isProduction = () => environment.node.env === 'production';
 const isDevelopment = () => environment.node.env === 'development';
 const isStaging = () => environment.node.env === 'staging';
 
-module.exports = environment;
-module.exports.validateEnvironment = validateEnvironment;
-module.exports.getMongoURI = getMongoURI;
-module.exports.isProduction = isProduction;
-module.exports.isDevelopment = isDevelopment;
-module.exports.isStaging = isStaging;
+export {
+    environment,
+    validateEnvironment,
+    getMongoURI,
+    isProduction,
+    isDevelopment,
+    isStaging
+};

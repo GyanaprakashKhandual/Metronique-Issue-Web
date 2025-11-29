@@ -1,5 +1,5 @@
-const uploadConfig = require('../configs/upload.config');
-const FileUploadUtils = require('../utils/file.upload.util');
+import uploadConfig from "../configs/upload.config";
+import FileUploadUtils from "../utils/upload.util";
 
 const validateUploadMiddleware = (req, res, next) => {
     if (!req.file && !req.files) {
@@ -30,4 +30,4 @@ const validateUploadMiddleware = (req, res, next) => {
     next();
 };
 
-module.exports = { validateUploadMiddleware };
+export default validateUploadMiddleware;

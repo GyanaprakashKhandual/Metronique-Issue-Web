@@ -1,8 +1,7 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-const uploadConfig = require('./upload.config');
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
+import uploadConfig from './upload.config';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -39,4 +38,4 @@ const upload = multer({
     }
 });
 
-module.exports = upload;
+export default upload;
