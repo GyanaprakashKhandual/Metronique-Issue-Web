@@ -486,7 +486,7 @@ backend/
 ### Database Models Relationships
 
 **Hierarchy:**
-- Organization → Department → Teams → Projects → Sprints/Phases → Folders → Documents/Sheets/Slides/Bugs
+- Organization → Department → Teams → Projects → Phases → Sprints → Folders → Documents/Sheets/Slides/Bugs/Issues/Requirement
 
 **Access Control Flow:**
 - When user is invited to project with admin access → automatically inherits all sub-resource access (sprints, folders, documents)
