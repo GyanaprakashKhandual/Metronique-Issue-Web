@@ -18,13 +18,13 @@ const departmentSchema = new mongoose.Schema(
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-            index: true
+             
         },
         parentDepartmentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Department',
             default: null,
-            index: true
+             
         },
         hierarchyPath: {
             type: String,
@@ -165,7 +165,7 @@ const departmentSchema = new mongoose.Schema(
                 type: String,
 
                 unique: true,
-                index: true
+                 
             },
             role: {
                 type: String,
@@ -277,7 +277,7 @@ const departmentSchema = new mongoose.Schema(
         isDeleted: {
             type: Boolean,
             default: false,
-            index: true
+             
         },
         deletedAt: {
             type: Date,

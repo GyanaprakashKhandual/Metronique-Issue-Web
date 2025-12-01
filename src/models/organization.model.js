@@ -151,7 +151,7 @@ const organizationSchema = new mongoose.Schema(
                 type: String,
 
                 unique: true,
-                index: true
+                 
             },
             role: {
                 type: String,
@@ -425,7 +425,7 @@ const organizationSchema = new mongoose.Schema(
         isDeleted: {
             type: Boolean,
             default: false,
-            index: true
+             
         },
         deletedAt: {
             type: Date,
@@ -475,7 +475,7 @@ organizationSchema.index({ 'members.userId': 1 });
 organizationSchema.index({ 'admins.userId': 1 });
 organizationSchema.index({ status: 1, isDeleted: 1 });
 organizationSchema.index({ createdAt: -1 });
-organizationSchema.index({ 'invitations.inviteToken': 1 });
+organizationSchema.index({ 'invitations.inviteToken': 1 }); 
 organizationSchema.index({ 'invitations.email': 1 });
 organizationSchema.index({ name: 'text', description: 'text' });
 

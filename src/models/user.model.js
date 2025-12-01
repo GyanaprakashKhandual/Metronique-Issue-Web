@@ -91,8 +91,7 @@ const userSchema = new mongoose.Schema(
         },
         sessions: [{
             token: {
-                type: String,
-                index: true
+                type: String
             },
             refreshToken: {
                 type: String,

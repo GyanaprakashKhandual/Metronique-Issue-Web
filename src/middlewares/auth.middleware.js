@@ -1,7 +1,7 @@
 import Organization from '../models/organization.model.js';
-import Department from '../../models/Department.js';
-import Team from '../../models/Team.js';
-import Project from '../../models/Project.js';
+import Department from '../models/department.model.js';
+import Team from '../models/team.model.js';
+import Project from '../models/project.model.js';
 import { verifyToken } from '../utils/jwt.util.js';
 import User from '../models/user.model.js';
 

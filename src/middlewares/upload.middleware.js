@@ -1,5 +1,6 @@
-import uploadConfig from "../configs/upload.config";
-import FileUploadUtils from "../utils/upload.util";
+import uploadConfig from "../configs/upload.config.js";
+import * as FileUploadUtils from "../utils/upload.util.js";
+
 
 const validateUploadMiddleware = (req, res, next) => {
     if (!req.file && !req.files) {

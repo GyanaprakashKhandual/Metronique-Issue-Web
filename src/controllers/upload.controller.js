@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
-import uploadConfig from '../configs/upload.config';
-import File from '../models/upload.model'
+import uploadConfig from '../configs/upload.config.js';
+import File from '../models/upload.model.js'
 class FileUpload {
     static async uploadSingleFile(req, res) {
         try {

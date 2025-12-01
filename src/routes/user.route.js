@@ -23,7 +23,7 @@ import {
     adminActivateUser,
     resendVerificationEmail,
     getUserActivityLog
-} from '../controllers/users/userController.js';
+} from '../controllers/user.controller.js';
 import {
     authenticate,
     isOrganizationAdmin,

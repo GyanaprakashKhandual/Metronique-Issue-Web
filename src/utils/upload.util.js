@@ -1,6 +1,6 @@
-const path = require('path');
-const fs = require('fs').promises;
-const uploadConfig = require('../configs/upload.config');
+import path from 'path';
+import fs from 'fs/promises';
+import uploadConfig from '../configs/upload.config.js';
 
 class FileUploadUtils {
     static getFileCategory(extension) {
@@ -57,4 +57,4 @@ class FileUploadUtils {
     }
 }
 
-module.exports = FileUploadUtils;
+export default FileUploadUtils;

@@ -5,40 +5,40 @@ const inviteSchema = new mongoose.Schema(
     {
         email: {
             type: String,
-            index: true
+             
         },
         inviteToken: {
             type: String,
             unique: true,
-            index: true
+             
         },
         inviteType: {
             type: String,
             enum: ['organization', 'department', 'team', 'project'],
-            index: true
+             
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-            index: true
+             
         },
         departmentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Department',
             default: null,
-            index: true
+             
         },
         teamId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Team',
             default: null,
-            index: true
+             
         },
         projectId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Project',
             default: null,
-            index: true
+             
         },
         invitedBy: {
             type: mongoose.Schema.Types.ObjectId,
@@ -48,12 +48,12 @@ const inviteSchema = new mongoose.Schema(
         invitedAt: {
             type: Date,
             default: Date.now,
-            index: true
+             
         },
         expiresAt: {
             type: Date,
 
-            index: true
+             
         },
         role: {
             type: String,
@@ -149,7 +149,7 @@ const inviteSchema = new mongoose.Schema(
             type: String,
             enum: ['pending', 'accepted', 'rejected', 'expired', 'revoked', 'resent'],
             default: 'pending',
-            index: true
+             
         },
         acceptedAt: {
             type: Date,
@@ -249,12 +249,12 @@ const inviteSchema = new mongoose.Schema(
         isActive: {
             type: Boolean,
             default: true,
-            index: true
+             
         },
         isDeleted: {
             type: Boolean,
             default: false,
-            index: true
+             
         },
         deletedAt: {
             type: Date,

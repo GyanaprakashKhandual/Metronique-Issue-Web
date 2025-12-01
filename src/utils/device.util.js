@@ -1,11 +1,11 @@
-import parser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
-// Parse device information from request
+// Parse device info
 export const parseDeviceInfo = (req) => {
     const userAgent = req.headers['user-agent'] || '';
-    const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
 
-    const ua = parser(userAgent);
+    const ua = new UAParser(userAgent).getResult();
 
     return {
         userAgent,
@@ -16,97 +16,67 @@ export const parseDeviceInfo = (req) => {
     };
 };
 
-// Get device name
+// Helpers
 const getDeviceName = (ua) => {
-    const device = ua.device;
-
-    if (device.vendor && device.model) {
-        return `${device.vendor} ${device.model}`;
+    if (ua.device.vendor && ua.device.model) {
+        return `${ua.device.vendor} ${ua.device.model}`;
     }
-
-    if (device.type) {
-        return device.type.charAt(0).toUpperCase() + device.type.slice(1);
+    if (ua.device.type) {
+        return ua.device.type;
     }
-
-    const os = ua.os.name;
-    if (os === 'Windows' || os === 'Mac OS') {
+    if (ua.os.name?.includes('Windows') || ua.os.name?.includes('Mac')) {
         return 'Desktop';
     }
-
-    if (os === 'Android' || os === 'iOS') {
+    if (ua.os.name === 'Android' || ua.os.name === 'iOS') {
         return 'Mobile';
     }
-
     return 'Unknown Device';
 };
 
-// Get OS information
 const getOSInfo = (ua) => {
-    const os = ua.os;
-
-    if (os.name && os.version) {
-        return `${os.name} ${os.version}`;
-    }
-
-    if (os.name) {
-        return os.name;
-    }
-
-    return 'Unknown OS';
+    return ua.os.name
+        ? `${ua.os.name}${ua.os.version ? ' ' + ua.os.version : ''}`
+        : 'Unknown OS';
 };
 
-// Get browser information
 const getBrowserInfo = (ua) => {
-    const browser = ua.browser;
-
-    if (browser.name && browser.version) {
-        return `${browser.name} ${browser.version}`;
-    }
-
-    if (browser.name) {
-        return browser.name;
-    }
-
-    return 'Unknown Browser';
+    return ua.browser.name
+        ? `${ua.browser.name}${ua.browser.version ? ' ' + ua.browser.version : ''}`
+        : 'Unknown Browser';
 };
 
 // Check if device is mobile
 export const isMobileDevice = (req) => {
-    const userAgent = req.headers['user-agent'] || '';
-    const ua = parser(userAgent);
-
+    const ua = new UAParser(req.headers['user-agent']).getResult();
     return ua.device.type === 'mobile' || ua.device.type === 'tablet';
 };
 
 // Get device type
 export const getDeviceType = (req) => {
-    const userAgent = req.headers['user-agent'] || '';
-    const ua = parser(userAgent);
-
+    const ua = new UAParser(req.headers['user-agent']).getResult();
     if (ua.device.type === 'mobile') return 'mobile';
     if (ua.device.type === 'tablet') return 'tablet';
-
     return 'desktop';
 };
 
-// Get IP address from request
+// Get IP address
 export const getIpAddress = (req) => {
     return (
         req.headers['x-forwarded-for']?.split(',')[0].trim() ||
         req.headers['x-real-ip'] ||
-        req.connection.remoteAddress ||
-        req.socket.remoteAddress ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
         req.ip ||
         'unknown'
     );
 };
 
-// Get user agent from request
+// Get user agent
 export const getUserAgent = (req) => {
     return req.headers['user-agent'] || 'unknown';
 };
 
-// Generate device fingerprint
+// Device Fingerprint
 export const generateDeviceFingerprint = (req) => {
     const userAgent = getUserAgent(req);
     const ipAddress = getIpAddress(req);
@@ -115,39 +85,22 @@ export const generateDeviceFingerprint = (req) => {
 
     const data = `${userAgent}-${ipAddress}-${acceptLanguage}-${acceptEncoding}`;
 
-    // Create hash
-    const crypto = require('crypto');
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return crypto.subtle ?
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(data)) :
+        require('crypto').createHash('sha256').update(data).digest('hex');
 };
 
-// Get detailed device info for logging
+// Detailed device info
 export const getDetailedDeviceInfo = (req) => {
-    const userAgent = req.headers['user-agent'] || '';
-    const ua = parser(userAgent);
+    const ua = new UAParser(req.headers['user-agent']).getResult();
 
     return {
-        browser: {
-            name: ua.browser.name || 'Unknown',
-            version: ua.browser.version || 'Unknown',
-            major: ua.browser.major || 'Unknown'
-        },
-        engine: {
-            name: ua.engine.name || 'Unknown',
-            version: ua.engine.version || 'Unknown'
-        },
-        os: {
-            name: ua.os.name || 'Unknown',
-            version: ua.os.version || 'Unknown'
-        },
-        device: {
-            vendor: ua.device.vendor || 'Unknown',
-            model: ua.device.model || 'Unknown',
-            type: ua.device.type || 'desktop'
-        },
-        cpu: {
-            architecture: ua.cpu.architecture || 'Unknown'
-        },
+        browser: ua.browser,
+        engine: ua.engine,
+        os: ua.os,
+        device: ua.device,
+        cpu: ua.cpu,
         ipAddress: getIpAddress(req),
-        userAgent: userAgent
+        userAgent: req.headers['user-agent']
     };
 };

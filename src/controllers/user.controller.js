@@ -1,5 +1,5 @@
-import User from '../models/User.js';
-import Organization from '../models/Organization.js';
+import User from '../models/user.model.js';
+import Organization from '../models/organization.model.js';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.util.js';
 import { generateVerificationToken, generatePasswordResetToken } from '../utils/token.util.js';
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '../services/notification/mail.service.js';
