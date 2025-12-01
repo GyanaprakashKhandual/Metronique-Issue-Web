@@ -14,6 +14,7 @@ import passport from "passport";
 import { environment, isProduction } from "./configs/environment.config.js";
 import { checkDBHealth, getConnectionStats } from "./configs/db.config.js";
 import specs from "./configs/swagger.config.js";
+import "./configs/passport.config.js";
 
 import userRoutes from "./routes/user.route.js";
 import fileUploadRoutes from "./routes/upload.route.js";

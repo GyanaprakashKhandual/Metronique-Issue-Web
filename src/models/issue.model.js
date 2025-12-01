@@ -4,7 +4,7 @@ const issueSchema = new mongoose.Schema(
     {
         issueSerialNumber: {
             type: String,
-            unique: true,
+
             index: true
         },
         organizationId: {

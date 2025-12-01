@@ -271,7 +271,7 @@ const projectSchema = new mongoose.Schema(
             inviteToken: {
                 type: String,
 
-                unique: true,
+
                 index: true
             },
             role: {

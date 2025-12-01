@@ -20,7 +20,7 @@ const mailLogSchema = new mongoose.Schema(
         },
         messageId: {
             type: String,
-            unique: true,
+
             index: true
         },
         subject: {

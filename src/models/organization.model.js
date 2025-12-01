@@ -150,8 +150,8 @@ const organizationSchema = new mongoose.Schema(
             inviteToken: {
                 type: String,
 
-                unique: true,
-                 
+
+
             },
             role: {
                 type: String,
@@ -425,7 +425,7 @@ const organizationSchema = new mongoose.Schema(
         isDeleted: {
             type: Boolean,
             default: false,
-             
+
         },
         deletedAt: {
             type: Date,
@@ -475,11 +475,11 @@ organizationSchema.index({ 'members.userId': 1 });
 organizationSchema.index({ 'admins.userId': 1 });
 organizationSchema.index({ status: 1, isDeleted: 1 });
 organizationSchema.index({ createdAt: -1 });
-organizationSchema.index({ 'invitations.inviteToken': 1 }); 
+organizationSchema.index({ 'invitations.inviteToken': 1 });
 organizationSchema.index({ 'invitations.email': 1 });
 organizationSchema.index({ name: 'text', description: 'text' });
 
-organizationSchema.pre('save', function (next) {
+organizationSchema.pre('save', function () {
     if (!this.slug && this.name) {
         this.slug = this.name
             .toLowerCase()
@@ -488,7 +488,6 @@ organizationSchema.pre('save', function (next) {
             .replace(/-+/g, '-')
             .trim('-');
     }
-    next();
 });
 
 organizationSchema.methods.isSuperAdmin = function (userId) {

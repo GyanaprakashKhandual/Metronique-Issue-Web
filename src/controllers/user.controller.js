@@ -140,7 +140,7 @@ export const verifyEmail = async (req, res) => {
         await sendWelcomeEmail(user.email, user.firstName);
 
         // Redirect to frontend
-        res.redirect(`http://localhost:3000/app?verified=true`);
+        res.redirect(`http://localhost:3000/app`);
 
     } catch (error) {
         console.error('Verify email error:', error);
@@ -149,6 +149,134 @@ export const verifyEmail = async (req, res) => {
             message: 'Error verifying email',
             error: error.message
         });
+    }
+};
+
+export const verifyEmailWithToken = async (req, res) => {
+    try {
+        const { token, rememberMe = false } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Verification token is required'
+            });
+        }
+
+        const decoded = verifyToken(token);
+
+        if (!decoded || !decoded.email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired token'
+            });
+        }
+
+        const user = await User.findOne({
+            email: decoded.email.toLowerCase(),
+            isDeleted: false
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (user.status === 'suspended') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended'
+            });
+        }
+
+        if (user.status === 'deleted') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been deleted'
+            });
+        }
+
+        user.isEmailVerified = true;
+        await user.save();
+
+        await sendWelcomeEmail(user.email, user.firstName);
+
+        const deviceInfo = parseDeviceInfo(req);
+
+        const accessTokenExpiry = rememberMe ? '30d' : '1d';
+        const refreshTokenExpiry = rememberMe ? '90d' : '7d';
+
+        const accessToken = generateToken({ userId: user._id }, accessTokenExpiry);
+        const refreshToken = generateRefreshToken({ userId: user._id }, refreshTokenExpiry);
+
+        const expiresAt = new Date(Date.now() + (rememberMe ? 90 : 7) * 24 * 60 * 60 * 1000);
+
+        user.addSession(accessToken, refreshToken, deviceInfo, expiresAt);
+
+        user.logActivity('user_login', 'user', user._id, {
+            method: 'email_verification',
+            deviceInfo
+        });
+
+        await user.save();
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: rememberMe ? 90 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Email verified successfully. Welcome!',
+            data: {
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    fullName: user.fullName,
+                    profileImage: user.profileImage,
+                    role: user.organizationMemberships[0]?.role || 'member',
+                    preferences: user.preferences
+                },
+                accessToken,
+                expiresAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Verify email with token error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying email',
+            error: error.message
+        });
+    }
+};
+
+export const verifyEmailPage = async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.redirect('http://localhost:3000?error=no_token');
+        }
+
+        const decoded = verifyToken(token);
+
+        if (!decoded || !decoded.email) {
+            return res.redirect('http://localhost:3000?error=invalid_token');
+        }
+
+        return res.redirect(`http://localhost:3000/verify-email?token=${token}`);
+
+    } catch (error) {
+        console.error('Verify email page error:', error);
+        return res.redirect('http://localhost:3000?error=server_error');
     }
 };
 
@@ -767,6 +895,253 @@ export const getUserSessions = async (req, res) => {
     }
 };
 
+// @desc    Google OAuth callback handler
+// @route   GET /api/v1/users/google/callback
+// @access  Public
+export const googleCallback = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.redirect(`http://localhost:3000/authentication?error=authentication_failed`);
+        }
+
+        // Parse device information
+        const deviceInfo = parseDeviceInfo(req);
+
+        // Generate tokens
+        const accessTokenExpiry = '1d';
+        const refreshTokenExpiry = '7d';
+
+        const accessToken = generateToken({ userId: user._id }, accessTokenExpiry);
+        const refreshToken = generateRefreshToken({ userId: user._id }, refreshTokenExpiry);
+
+        // Calculate session expiry
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        // Add session to user
+        user.addSession(accessToken, refreshToken, deviceInfo, expiresAt);
+
+        // Log activity
+        user.logActivity('user_login', 'user', user._id, {
+            method: 'google',
+            deviceInfo
+        });
+
+        await user.save();
+
+        // Set refresh token as httpOnly cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        // Redirect to frontend with tokens
+        res.redirect(
+            `http://localhost:3000/app`
+        );
+
+    } catch (error) {
+        console.error('Google callback error:', error);
+        res.redirect(`http://localhost:3000/authentication?error=server_error`);
+    }
+};
+
+// @desc    GitHub OAuth callback handler
+// @route   GET /api/v1/users/github/callback
+// @access  Public
+export const githubCallback = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.redirect(`http://localhost:3000/authentication?error=authentication_failed`);
+        }
+
+        // Parse device information
+        const deviceInfo = parseDeviceInfo(req);
+
+        // Generate tokens
+        const accessTokenExpiry = '1d';
+        const refreshTokenExpiry = '7d';
+
+        const accessToken = generateToken({ userId: user._id }, accessTokenExpiry);
+        const refreshToken = generateRefreshToken({ userId: user._id }, refreshTokenExpiry);
+
+        // Calculate session expiry
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        // Add session to user
+        user.addSession(accessToken, refreshToken, deviceInfo, expiresAt);
+
+        // Log activity
+        user.logActivity('user_login', 'user', user._id, {
+            method: 'github',
+            deviceInfo
+        });
+
+        await user.save();
+
+        // Set refresh token as httpOnly cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        // Redirect to frontend with tokens
+        res.redirect(
+            `http://localhost:3000/app`
+        );
+
+    } catch (error) {
+        console.error('GitHub callback error:', error);
+        res.redirect(`http://localhost:3000/authentication?error=server_error`);
+    }
+};
+
+// @desc    Get OAuth login initiation (for frontend)
+// @route   POST /api/v1/users/oauth/google
+// @access  Public
+export const initiateGoogleLogin = (req, res) => {
+    res.json({
+        success: true,
+        message: 'Redirect to Google OAuth URL',
+        url: `${process.env.GOOGLE_AUTH_URL || 'https://accounts.google.com/o/oauth2/v2/auth'}`
+    });
+};
+
+// @desc    Get OAuth login initiation (for frontend)
+// @route   POST /api/v1/users/oauth/github
+// @access  Public
+export const initiateGitHubLogin = (req, res) => {
+    res.json({
+        success: true,
+        message: 'Redirect to GitHub OAuth URL',
+        url: `${process.env.GITHUB_AUTH_URL || 'https://github.com/login/oauth/authorize'}`
+    });
+};
+export const continueWithEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        const emailLower = email.toLowerCase();
+
+        let user = await User.findOne({
+            email: emailLower,
+            isDeleted: false
+        });
+
+        if (user) {
+            if (!user.isEmailVerified) {
+                const verificationToken = generateToken(
+                    { email: user.email, userId: user._id },
+                    '10m'
+                );
+
+                await sendVerificationEmail(user.email, user.firstName, verificationToken);
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Verification email sent to your address',
+                    data: {
+                        email: user.email,
+                        isNewUser: false,
+                        requiresVerification: true
+                    }
+                });
+            }
+
+            const verificationToken = generateToken(
+                { email: user.email, userId: user._id },
+                '10m'
+            );
+
+            await sendVerificationEmail(user.email, user.firstName, verificationToken);
+
+            return res.status(200).json({
+                success: true,
+                message: 'Verification email sent to your address',
+                data: {
+                    email: user.email,
+                    isNewUser: false,
+                    requiresVerification: true
+                }
+            });
+        }
+
+        const nameParts = emailLower.split('@')[0].split('.') || ['User'];
+        const newUser = new User({
+            firstName: nameParts[0] || 'User',
+            lastName: nameParts[1] || '',
+            email: emailLower,
+            authProvider: 'email',
+            status: 'active',
+            isEmailVerified: false
+        });
+
+        await newUser.save();
+
+        const organization = new Organization({
+            name: `${newUser.firstName}'s Organization`,
+            superAdmin: newUser._id,
+            members: [
+                {
+                    userId: newUser._id,
+                    role: 'superadmin',
+                    status: 'active',
+                    joinedAt: new Date()
+                }
+            ]
+        });
+
+        await organization.save();
+
+        newUser.addOrganizationMembership(organization._id, 'superadmin');
+        await newUser.save();
+
+        const verificationToken = generateToken(
+            { email: newUser.email, userId: newUser._id },
+            '10m'
+        );
+
+        await sendVerificationEmail(newUser.email, newUser.firstName, verificationToken);
+
+        newUser.logActivity('user_registered', 'user', newUser._id, {
+            method: 'email',
+            email: newUser.email
+        });
+        await newUser.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Verification email sent to your address',
+            data: {
+                email: newUser.email,
+                isNewUser: true,
+                requiresVerification: true
+            }
+        });
+
+    } catch (error) {
+        console.error('Continue with email error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error processing email',
+            error: error.message
+        });
+    }
+};
 // ============================================
 // ADMIN OPERATIONS
 // ============================================

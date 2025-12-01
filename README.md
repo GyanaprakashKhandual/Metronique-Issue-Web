@@ -529,3 +529,15 @@ backend/
 - Role-based and permission-based authorization at every endpoint
 
 This structure scales with your feature set while maintaining clean separation of concerns and clear data flow.
+
+Organization (Top Level)
+├── Department
+│   ├── Sub-Department (infinite levels)
+│   └── Team
+│       ├── Sub-Team (infinite levels)
+│       └── Project
+│           ├── Sub-Project (infinite levels)
+│           ├── Phase
+│           │   ├── Sub-Phase (infinite levels)
+│           │   └── Sprint
+│           │       └── Sub-Sprint (infinite levels)

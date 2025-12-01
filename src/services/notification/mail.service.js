@@ -5,7 +5,16 @@ import {
     getWelcomeEmailTemplate,
     getPasswordChangedEmailTemplate,
     getAccountSuspendedEmailTemplate,
-    getOrganizationInviteEmailTemplate
+    getOrganizationInviteEmailTemplate,
+    getOrganizationCreatedEmailTemplate,
+    getOrganizationMemberInvitationEmailTemplate,
+    getMemberAddedToOrganizationEmailTemplate,
+    getMemberRoleUpdatedEmailTemplate,
+    getMemberRemovedFromOrganizationEmailTemplate,
+    getAdminAddedEmailTemplate,
+    getAdminRemovedEmailTemplate,
+    getProjectCreatedEmailTemplate,
+    getInvitationCancelledEmailTemplate
 } from '../../templates/notification/mail.template.js';
 
 const sendEmail = async (to, subject, html) => {
@@ -30,7 +39,7 @@ const sendEmail = async (to, subject, html) => {
 
 export const sendVerificationEmail = async (email, firstName, token) => {
     try {
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email/${token}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
         const html = getVerificationEmailTemplate(firstName, verificationLink);
 
@@ -49,7 +58,7 @@ export const sendVerificationEmail = async (email, firstName, token) => {
 
 export const sendPasswordResetEmail = async (email, firstName, token) => {
     try {
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${token}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
 
         const html = getPasswordResetEmailTemplate(firstName, resetLink);
 
@@ -130,6 +139,244 @@ export const sendOrganizationInviteEmail = async (email, firstName, organization
         return { success: true };
     } catch (error) {
         console.error('Send organization invite email error:', error);
+        throw error;
+    }
+};
+
+export const sendOrganizationCreatedEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getOrganizationCreatedEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Organization Created: ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send organization created email error:', error);
+        throw error;
+    }
+};
+
+export const sendOrganizationMemberInvitationEmail = async (email, firstName, organizationName, inviteLink) => {
+    try {
+        const html = getOrganizationMemberInvitationEmailTemplate(firstName, organizationName, inviteLink);
+
+        await sendEmail(
+            email,
+            `Join ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send organization member invitation email error:', error);
+        throw error;
+    }
+};
+
+export const sendMemberAddedToOrganizationEmail = async (email, firstName, organizationName, role) => {
+    try {
+        const html = getMemberAddedToOrganizationEmailTemplate(firstName, organizationName, role);
+
+        await sendEmail(
+            email,
+            `You've been added to ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send member added email error:', error);
+        throw error;
+    }
+};
+
+export const sendMemberRoleUpdatedEmail = async (email, firstName, organizationName, newRole, oldRole) => {
+    try {
+        const html = getMemberRoleUpdatedEmailTemplate(firstName, organizationName, newRole, oldRole);
+
+        await sendEmail(
+            email,
+            `Role Updated in ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send member role updated email error:', error);
+        throw error;
+    }
+};
+
+export const sendMemberRemovedFromOrganizationEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getMemberRemovedFromOrganizationEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Removed from ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send member removed email error:', error);
+        throw error;
+    }
+};
+
+export const sendAdminAddedEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getAdminAddedEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Admin Privileges Granted in ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send admin added email error:', error);
+        throw error;
+    }
+};
+
+export const sendAdminRemovedEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getAdminRemovedEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Admin Privileges Removed from ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send admin removed email error:', error);
+        throw error;
+    }
+};
+
+export const sendProjectCreatedEmail = async (email, firstName, projectName, organizationName) => {
+    try {
+        const html = getProjectCreatedEmailTemplate(firstName, projectName, organizationName);
+
+        await sendEmail(
+            email,
+            `New Project Created: ${projectName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send project created email error:', error);
+        throw error;
+    }
+};
+
+export const sendInvitationCancelledEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getInvitationCancelledEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Invitation Cancelled for ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send invitation cancelled email error:', error);
+        throw error;
+    }
+};
+
+export const sendOrganizationDeletedEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getOrganizationDeletedEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Organization Deleted: ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send organization deleted email error:', error);
+        throw error;
+    }
+};
+
+export const sendSettingsUpdatedEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getSettingsUpdatedEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Settings Updated in ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send settings updated email error:', error);
+        throw error;
+    }
+};
+
+export const sendIntegrationConnectedEmail = async (email, firstName, organizationName, integrationName) => {
+    try {
+        const html = getIntegrationConnectedEmailTemplate(firstName, organizationName, integrationName);
+
+        await sendEmail(
+            email,
+            `${integrationName} Connected to ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send integration connected email error:', error);
+        throw error;
+    }
+};
+
+export const sendIntegrationDisconnectedEmail = async (email, firstName, organizationName, integrationName) => {
+    try {
+        const html = getIntegrationDisconnectedEmailTemplate(firstName, organizationName, integrationName);
+
+        await sendEmail(
+            email,
+            `${integrationName} Disconnected from ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send integration disconnected email error:', error);
+        throw error;
+    }
+};
+
+export const sendMemberLeftOrganizationEmail = async (email, firstName, organizationName) => {
+    try {
+        const html = getMemberLeftOrganizationEmailTemplate(firstName, organizationName);
+
+        await sendEmail(
+            email,
+            `Member Left ${organizationName}`,
+            html
+        );
+
+        return { success: true };
+    } catch (error) {
+        console.error('Send member left email error:', error);
         throw error;
     }
 };

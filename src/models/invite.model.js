@@ -5,40 +5,40 @@ const inviteSchema = new mongoose.Schema(
     {
         email: {
             type: String,
-             
+
         },
         inviteToken: {
             type: String,
-            unique: true,
-             
+
+
         },
         inviteType: {
             type: String,
             enum: ['organization', 'department', 'team', 'project'],
-             
+
         },
         organizationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Organization',
-             
+
         },
         departmentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Department',
             default: null,
-             
+
         },
         teamId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Team',
             default: null,
-             
+
         },
         projectId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Project',
             default: null,
-             
+
         },
         invitedBy: {
             type: mongoose.Schema.Types.ObjectId,
@@ -48,12 +48,12 @@ const inviteSchema = new mongoose.Schema(
         invitedAt: {
             type: Date,
             default: Date.now,
-             
+
         },
         expiresAt: {
             type: Date,
 
-             
+
         },
         role: {
             type: String,
@@ -149,7 +149,7 @@ const inviteSchema = new mongoose.Schema(
             type: String,
             enum: ['pending', 'accepted', 'rejected', 'expired', 'revoked', 'resent'],
             default: 'pending',
-             
+
         },
         acceptedAt: {
             type: Date,
@@ -249,12 +249,12 @@ const inviteSchema = new mongoose.Schema(
         isActive: {
             type: Boolean,
             default: true,
-             
+
         },
         isDeleted: {
             type: Boolean,
             default: false,
-             
+
         },
         deletedAt: {
             type: Date,

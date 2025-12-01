@@ -4,7 +4,7 @@ const requirementSchema = new mongoose.Schema(
     {
         requirementSerialNumber: {
             type: String,
-            unique: true,
+
             index: true
         },
         organizationId: {
