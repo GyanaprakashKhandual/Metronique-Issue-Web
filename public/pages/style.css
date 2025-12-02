@@ -39,6 +39,7 @@ body {
     z-index: 100;
     position: sticky;
     max-height: 100vh;
+    max-height: 100vh;
 }
 
 .sidebar-header {
@@ -124,6 +125,12 @@ body {
     cursor: pointer;
 }
 
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
 .markdown-body {
     min-height: calc(100vh - 60px);
     background-color: white;
@@ -157,6 +164,218 @@ body {
     background: #fdf0ed;
     border-radius: 8px;
     border-left: 4px solid #e74c3c;
+}
+
+/* GitHub-style Markdown Styling */
+.markdown-body {
+    font-size: 16px;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.markdown-body h1,
+.markdown-body h2 {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+.markdown-body h1 {
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.markdown-body h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.markdown-body h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+.markdown-body h4 {
+    font-size: 1em;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+.markdown-body h5 {
+    font-size: 0.875em;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+.markdown-body h6 {
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    color: #57606a;
+}
+
+.markdown-body p {
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    padding-left: 2em;
+    margin-bottom: 16px;
+}
+
+.markdown-body li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.markdown-body li>p {
+    margin-bottom: 8px;
+}
+
+.markdown-body code {
+    background-color: rgba(175, 184, 193, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 0.9em;
+}
+
+/* FIXED: Pre/Code block styling to preserve ASCII art */
+.markdown-body pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    position: relative;
+    border: 1px solid #d0d7de;
+}
+
+.markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.85em;
+    line-height: 1.45;
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    word-wrap: normal;
+    word-break: normal;
+}
+
+.markdown-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+    display: table;
+    overflow-x: auto;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+    border: 1px solid #d0d7de;
+    padding: 8px 13px;
+}
+
+.markdown-body table th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+    text-align: left;
+}
+
+.markdown-body table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+.markdown-body blockquote {
+    border-left: 4px solid #d0d7de;
+    padding-left: 16px;
+    margin-left: 0;
+    margin-bottom: 16px;
+    color: #57606a;
+}
+
+.markdown-body blockquote> :first-child {
+    margin-top: 0;
+}
+
+.markdown-body blockquote> :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-body img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin: 16px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.markdown-body a {
+    color: #0969da;
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+.markdown-body hr {
+    border: none;
+    border-top: 1px solid #d0d7de;
+    margin: 24px 0;
+}
+
+.markdown-body strong {
+    font-weight: 600;
+}
+
+.markdown-body em {
+    font-style: italic;
+}
+
+.copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #0969da;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.markdown-body pre:hover .copy-button {
+    opacity: 1;
+}
+
+.copy-button:hover {
+    background: #0550ae;
+}
+
+.copy-button.copied {
+    background: #1a7f37;
+}
+
+/* Task list styling */
+.markdown-body input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.markdown-body .task-list-item {
+    list-style-type: none;
+    margin-left: -1.5em;
 }
 
 @media (max-width: 992px) {

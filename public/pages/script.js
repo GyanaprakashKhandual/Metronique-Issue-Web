@@ -23,6 +23,25 @@ const sidebarTabs = document.querySelector('.sidebar-tabs');
 const markdownContent = document.getElementById('markdownContent');
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Configure marked.js for GitHub Flavored Markdown
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+        headerIds: true,
+        mangle: false,
+        sanitize: false,
+        highlight: function (code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+                try {
+                    return hljs.highlight(code, { language: lang }).value;
+                } catch (err) {
+                    console.error('Highlight error:', err);
+                }
+            }
+            return hljs.highlightAuto(code).value;
+        }
+    });
+
     renderTabs();
     loadContent('../docs/home.doc.md', 'Home');
     document.querySelector(`[data-tab="home"]`).classList.add('active');
@@ -30,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function renderTabs() {
     sidebarTabs.innerHTML = '';
-
     tabs.forEach(tab => {
         const tabElement = document.createElement('div');
         tabElement.className = 'tab';
@@ -39,13 +57,11 @@ function renderTabs() {
                     <i class="${tab.icon}"></i>
                     <span>${tab.name}</span>
                 `;
-
         tabElement.addEventListener('click', () => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tabElement.classList.add('active');
             loadContent(tab.file, tab.name);
         });
-
         sidebarTabs.appendChild(tabElement);
     });
 }
@@ -61,13 +77,22 @@ function loadContent(fileName, title) {
             return response.text();
         })
         .then(markdownText => {
-            const htmlContent = convertMarkdownToHTML(markdownText);
+            // Convert markdown to HTML using marked.js
+            const htmlContent = marked.parse(markdownText);
             markdownContent.innerHTML = htmlContent;
+
+            // Add copy buttons to code blocks
+            addCopyButtons();
+
+            // Re-highlight code blocks
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
         })
         .catch(error => {
             markdownContent.innerHTML = `
                         <div class="error">
-                            <h3>Content Not Found</h3>
+                            <h3><i class="fas fa-exclamation-triangle"></i> Content Not Found</h3>
                             <p>The requested document "${fileName}" could not be loaded.</p>
                             <p>Please try again later or contact support if the problem persists.</p>
                         </div>
@@ -75,23 +100,37 @@ function loadContent(fileName, title) {
         });
 }
 
-function convertMarkdownToHTML(markdown) {
-    let html = markdown
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*)\*/gim, '<em>$1</em>')
-        .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-        .replace(/^\s*-\s(.*$)/gim, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
-        .replace(/^\s*\d\.\s(.*$)/gim, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gims, '<ol>$1</ol>')
-        .replace(/\n$/gim, '<br>')
-        .replace(/^(?!<[h|u|o|l|b|q])(.*$)/gim, '<p>$1</p>');
+function addCopyButtons() {
+    document.querySelectorAll('pre').forEach((pre) => {
+        // Check if button already exists
+        if (pre.querySelector('.copy-button')) return;
 
-    html = html.replace(/<p><(h[1-6]|ul|ol|blockquote|li)>/g, '<$1>');
-    html = html.replace(/<\/(h[1-6]|ul|ol|blockquote|li)><\/p>/g, '</$1>');
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
 
-    return html;
+        button.addEventListener('click', () => {
+            const code = pre.querySelector('code');
+            const text = code.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                button.textContent = 'Failed';
+            });
+        });
+
+        pre.appendChild(button);
+    });
+}
+
+function toggleSidebar() {
+    sidebar.classList.toggle('active');
 }
